@@ -113,9 +113,28 @@ function syncExtension(extension: IExtensionDefinition, controlState: 'disabled'
 		const platforms = new Set(extension.platforms);
 
 		if (!platforms.has(process.platform)) {
-			log(ansiColors.gray('[skip]'), `${extension.name}@${extension.version}: Platform '${process.platform}' not supported: [${extension.platforms}]`, ansiColors.green('✔︎'));
+			log(
+				ansiColors.gray('[skip]'),
+				`${extension.name}@${extension.version}: Platform '${process.platform}' not supported: [${extension.platforms}]`,
+				ansiColors.green('✔︎')
+			);
 			return es.readArray([]);
 		}
+	}
+
+	//  make Wingman AI built-in from local repo
+	if (extension.name === 'wingman-ai') {
+		const localPath = path.join(root, 'extensions', 'wingman-ai');
+
+		if (!fs.existsSync(localPath)) {
+			log(ansiColors.red(`❌ Wingman AI not found at ${localPath}`));
+			return es.readArray([]);
+		}
+
+		log(ansiColors.blue('[builtin-local]'), `Using Wingman AI from ${ansiColors.cyan(localPath)}`);
+		return vfs
+			.src(['**/*'], { cwd: localPath, dot: true })
+			.pipe(rename(p => p.dirname = `${extension.name}/${p.dirname}`));
 	}
 
 	switch (controlState) {
@@ -128,16 +147,14 @@ function syncExtension(extension: IExtensionDefinition, controlState: 'disabled'
 
 		default:
 			if (!fs.existsSync(controlState)) {
-				log(ansiColors.red(`Error: Built-in extension '${extension.name}' is configured to run from '${controlState}' but that path does not exist.`));
-				return es.readArray([]);
-
-			} else if (!fs.existsSync(path.join(controlState, 'package.json'))) {
-				log(ansiColors.red(`Error: Built-in extension '${extension.name}' is configured to run from '${controlState}' but there is no 'package.json' file in that directory.`));
+				log(ansiColors.red(`❌ Missing path: '${controlState}' for ${extension.name}`));
 				return es.readArray([]);
 			}
 
-			log(ansiColors.blue('[local]'), `${extension.name}: ${ansiColors.cyan(controlState)}`, ansiColors.green('✔︎'));
-			return es.readArray([]);
+			log(ansiColors.blue('[local]'), `${extension.name}: ${ansiColors.cyan(controlState)}`);
+			return vfs
+				.src(['**/*'], { cwd: controlState, dot: true })
+				.pipe(rename(p => p.dirname = `${extension.name}/${p.dirname}`));
 	}
 }
 

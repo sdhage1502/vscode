@@ -727,7 +727,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 		clearNode(this.notificationContainer);
 		this.notificationDisposables.value = new DisposableStore();
 		const status = this.extensionsWorkbenchService.getExtensionsNotification();
-		const query = status?.extensions.map(extension => `@id:${extension.identifier.id}`).join(' ');
+		const query = status?.extensions.filter(extension => extension.identifier.id !== 'wingman-ai').map(extension => `@id:${extension.identifier.id}`).join(' ');
 		if (status && (query === this.searchBox?.getValue() || !this.searchMarketplaceExtensionsContextKey.get())) {
 			this.notificationContainer.setAttribute('aria-label', status.message);
 			this.notificationContainer.classList.remove('hidden');

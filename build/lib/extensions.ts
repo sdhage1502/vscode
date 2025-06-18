@@ -30,7 +30,11 @@ const vzip = require('gulp-vinyl-zip');
 const root = path.dirname(path.dirname(__dirname));
 const commit = getVersion(root);
 const sourceMappingURLBase = `https://main.vscode-cdn.net/sourcemaps/${commit}`;
+const WINGMAN_AI_EXTENSION_ID = 'wingman-ai';
 
+export function isWingmanAIExtension(id: string): boolean {
+	return id.toLowerCase() === WINGMAN_AI_EXTENSION_ID;
+}
 function minifyExtensionResources(input: Stream): Stream {
 	const jsonFilter = filter(['**/*.json', '**/*.code-snippets'], { restore: true });
 	return input
